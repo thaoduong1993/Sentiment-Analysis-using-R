@@ -2,7 +2,7 @@ require(shiny)
 require(rvest)
 require(dplyr)
 require(tidyr)
-require(tm)
+library(tm)
 require(stringr)
 require(scales)
 require(tidytext)
@@ -16,7 +16,7 @@ ui <- fluidPage(
   theme = shinytheme("slate"),
   # Assignment title
   br(),
-  titlePanel("ThaoDuong_Natural_Language_Processing", windowTitle="ThaoD_NLP"),
+  titlePanel("Toyota Campry Reviews", windowTitle="Toyota Camry Reviews"),
   br(),
   # Create a sidebar for input action
   sidebarPanel(
@@ -75,7 +75,7 @@ ui <- fluidPage(
 
 server <- function(input,output, session) {
   observeEvent(input$do, {
-    source("./ThaoD_Source.R")
+    source("./source.R")
     
     #Because we need to get the train and test data in every part, create a reactive for quick input
     basictrain <- reactive({
@@ -83,7 +83,7 @@ server <- function(input,output, session) {
       #Get all the urls over years and pages
       urls <- bind_rows(lapply(years, count_urls), .id = NULL)
       urls <- unlist(urls, use.names = FALSE)
-      #Read the reviews
+      #Read the reyearviews
       train <- bind_rows(lapply(urls, read_reviews))
       colnames(train) <- c("Year", "Star", "Review")
       train
@@ -92,7 +92,7 @@ server <- function(input,output, session) {
     basictest <- reactive({
       #Test set only comes from 1 year
       url0 <- paste("https://www.cars.com/research/toyota-camry-",input$test,"/consumer-reviews/?pg=", sep = "")
-      npages <- url0 %>% read_html() %>% html_nodes(".page-list li a") %>% html_text() %>% tail(.,1) %>% as.numeric()
+      npages <- url0 %>% read_html() %>% html_nodes(".page-numbers") %>%  html_text() %>% str_trim() %>% str_split(" \ ") %>% unlist() %>% as.numeric() %>% tail(1)
       urls <- paste(url0, 1:npages, sep="")
       test <- bind_rows(lapply(urls, read_reviews))
       colnames(test) <- c("Year", "Star", "Review")
@@ -501,9 +501,3 @@ server <- function(input,output, session) {
 
 
 shinyApp(ui = ui, server = server)
-
-
-
-
-
-
